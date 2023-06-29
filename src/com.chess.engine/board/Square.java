@@ -1,16 +1,15 @@
-package com.chess.engine.board;
+package src.com.chess.engine.board;
 
-import com.chess.engine.pieces.Piece;
+import src.com.chess.engine.pieces.Piece;
 import com.google.common.collect.ImmutableMap;
 
-import javax.management.ImmutableDescriptor;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Square {
     protected final int squareCoordinate;
 
-    private static final Map<Integer, EmptySquare> EMPTY_SQUARES = createAllPossibleEmptySquares();
+    private static final Map<Integer, EmptySquare> EMPTY_SQUARES_CACHE = createAllPossibleEmptySquares();
 
     private static Map<Integer, EmptySquare> createAllPossibleEmptySquares() {
         final Map<Integer, EmptySquare> emptySquareMap = new HashMap<>();
@@ -18,11 +17,12 @@ public abstract class Square {
         for(int i = 0; i < 64; i++) {
             emptySquareMap.put(i, new EmptySquare(i));
         }
+        // Collections.unmodifiableMap(emptySquareMap); <- works the same
         return ImmutableMap.copyOf(emptySquareMap);
     }
 
     public static Square createSquare(final int squareCoordinate, final Piece piece) {
-        return piece != null ? new OccupiedSquare(squareCoordinate, piece) : EMPTY_SQUARES.get(squareCoordinate);
+        return piece != null ? new OccupiedSquare(squareCoordinate, piece) : EMPTY_SQUARES_CACHE.get(squareCoordinate);
     }
     private Square(int squareCoordinate) {
         this.squareCoordinate = squareCoordinate;
@@ -33,7 +33,7 @@ public abstract class Square {
     public abstract Piece getPiece();
 
     public static final class EmptySquare extends Square {
-        EmptySquare(final int coordinate) {
+        private EmptySquare(final int coordinate) {
             super(coordinate);
         }
         @Override
@@ -48,7 +48,7 @@ public abstract class Square {
     public static final class OccupiedSquare extends Square {
         private final Piece pieceOnSquare;
 
-        OccupiedSquare(int squareCoordinate, Piece pieceOnSquare) {
+        private OccupiedSquare(int squareCoordinate, Piece pieceOnSquare) {
             super(squareCoordinate);
             this.pieceOnSquare = pieceOnSquare;
         }
