@@ -14,8 +14,8 @@ public abstract class Move {
         this.destinationCoordinate = destinationCoordinate;
     }
 
-    public static final class MajorMove extends Move {
-        public MajorMove(final Board board, final Piece movedPiece, final int destinationCoordinate) {
+    public static final class RegularMove extends Move {
+        public RegularMove(final Board board, final Piece movedPiece, final int destinationCoordinate) {
             super(board, movedPiece, destinationCoordinate);
         }
     }

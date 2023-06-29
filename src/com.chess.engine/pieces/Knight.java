@@ -37,7 +37,7 @@ public class Knight extends Piece{
                 }
                 final Square candidateDestinationSquare = board.getSquare(candidateDestinationCoordinate);
                 if(!candidateDestinationSquare.isSquareOccupied()) {
-                    legalMoves.add(new MajorMove(board, this, candidateDestinationCoordinate));
+                    legalMoves.add(new RegularMove(board, this, candidateDestinationCoordinate));
                 } else {
                     final Piece pieceAtDestination = candidateDestinationSquare.getPiece();
                     final Color pieceColor = pieceAtDestination.getPieceColor();
