@@ -18,6 +18,10 @@ public abstract class Piece {
         this.isFirstMove = false; // to do!!!
     }
 
+    public int getPiecePosition() {
+        return this.piecePosition;
+    }
+
     public Color getPieceColor() {
         return this.pieceColor;
     }
