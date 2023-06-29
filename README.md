@@ -1,2 +1,2 @@
 # java-chess
-work-in-progress chess implementation in java 
+chess engine implementation in java 
