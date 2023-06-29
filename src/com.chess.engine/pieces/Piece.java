@@ -16,5 +16,9 @@ public abstract class Piece {
         this.pieceColor = pieceColor;
     }
 
+    public Color getPieceColor() {
+        return this.pieceColor;
+    }
+
     public abstract List<Move> calculateLegalMoves(final Board board);
 }
