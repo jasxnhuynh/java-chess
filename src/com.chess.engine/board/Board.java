@@ -2,12 +2,15 @@ package src.com.chess.engine.board;
 
 import com.google.common.collect.ImmutableList;
 import src.com.chess.engine.Color;
-import src.com.chess.engine.pieces.*;
+import src.com.chess.engine.pieces.Bishop;
+import src.com.chess.engine.pieces.King;
+import src.com.chess.engine.pieces.Knight;
+import src.com.chess.engine.pieces.Pawn;
+import src.com.chess.engine.pieces.Piece;
+import src.com.chess.engine.pieces.Queen;
+import src.com.chess.engine.pieces.Rook;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Board {
 
@@ -19,12 +22,38 @@ public class Board {
         this.gameBoard = createGameBoard(builder);
         this.whitePieces = calculateActivePieces(this.gameBoard, Color.WHITE);
         this.blackPieces = calculateActivePieces(this.gameBoard, Color.BLACK);
+
+        final Collection<Move> whiteStandardLegalMoves = calculateLegalMoves(this.whitePieces);
+        final Collection<Move> blackStandardLegalMoves = calculateLegalMoves(this.blackPieces);;
     }
 
-    private Collection<Piece> calculateActivePieces(final List<Square> gameBoard, final Color color) {
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < BoardUtils.NUM_SQUARES; i++) {
+            final String squareText = this.gameBoard.get(i).toString();
+            builder.append(String.format("%3s", squareText));
+            if ((i + 1) % BoardUtils.NUM_SQUARES_PER_ROW == 0) {
+                builder.append("\n");
+            }
+        }
+        return builder.toString();
+    }
 
+    private static String prettyPrint(Square square) {
+        return square.toString();
+    }
+
+    private Collection<Move> calculateLegalMoves(final Collection<Piece> pieces) {
+        final List<Move> legalMoves = new ArrayList<>();
+        for (final Piece piece : pieces) {
+            legalMoves.addAll(piece.calculateLegalMoves(this));
+        }
+        return ImmutableList.copyOf(legalMoves);
+    }
+
+    private static Collection<Piece> calculateActivePieces(final List<Square> gameBoard, final Color color) {
         final List<Piece> activePieces = new ArrayList<>();
-
         for (final Square square : gameBoard) {
             if (square.isSquareOccupied()) {
                 final Piece piece = square.getPiece();
@@ -96,7 +125,7 @@ public class Board {
         Color nextMoveMaker;
 
         public Builder() {
-
+            this.boardConfig = new HashMap<>();
         }
 
         public Builder setPiece(final Piece piece) {
