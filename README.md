@@ -1,2 +1,2 @@
 # java-chess
-*to do* chess implementation in java... *to do* 
+work-in-progress chess implementation in java 
