@@ -4,7 +4,7 @@ import src.com.chess.engine.Color;
 import src.com.chess.engine.board.Board;
 import src.com.chess.engine.board.Move;
 
-import java.util.List;
+import java.util.Collection;
 
 public abstract class Piece {
 
@@ -20,5 +20,5 @@ public abstract class Piece {
         return this.pieceColor;
     }
 
-    public abstract List<Move> calculateLegalMoves(final Board board);
+    public abstract Collection<Move> calculateLegalMoves(final Board board);
 }
