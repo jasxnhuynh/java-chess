@@ -14,7 +14,7 @@ public abstract class Square {
     private static Map<Integer, EmptySquare> createAllPossibleEmptySquares() {
         final Map<Integer, EmptySquare> emptySquareMap = new HashMap<>();
 
-        for(int i = 0; i < 64; i++) {
+        for(int i = 0; i < BoardUtils.NUM_SQUARES; i++) {
             emptySquareMap.put(i, new EmptySquare(i));
         }
         // Collections.unmodifiableMap(emptySquareMap); <- works the same
@@ -24,7 +24,7 @@ public abstract class Square {
     public static Square createSquare(final int squareCoordinate, final Piece piece) {
         return piece != null ? new OccupiedSquare(squareCoordinate, piece) : EMPTY_SQUARES_CACHE.get(squareCoordinate);
     }
-    private Square(int squareCoordinate) {
+    private Square(final int squareCoordinate) {
         this.squareCoordinate = squareCoordinate;
     }
 
@@ -48,7 +48,7 @@ public abstract class Square {
     public static final class OccupiedSquare extends Square {
         private final Piece pieceOnSquare;
 
-        private OccupiedSquare(int squareCoordinate, Piece pieceOnSquare) {
+        private OccupiedSquare(int squareCoordinate, final Piece pieceOnSquare) {
             super(squareCoordinate);
             this.pieceOnSquare = pieceOnSquare;
         }
