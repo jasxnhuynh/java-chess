@@ -68,6 +68,10 @@ public class Pawn extends Piece {
         return ImmutableList.copyOf(legalMoves);
     }
     @Override
+    public Pawn movePiece(Move move) {
+        return new Pawn(move.getMovedPiece().getPieceColor(), move.getDestinationCoordinate());
+    }
+    @Override
     public String toString() {
         return PieceType.PAWN.toString();
     }
