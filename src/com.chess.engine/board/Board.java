@@ -1,7 +1,5 @@
 package src.com.chess.engine.board;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import src.com.chess.engine.Color;
 import src.com.chess.engine.pieces.Bishop;
 import src.com.chess.engine.pieces.King;
@@ -14,58 +12,60 @@ import src.com.chess.engine.player.BlackPlayer;
 import src.com.chess.engine.player.Player;
 import src.com.chess.engine.player.WhitePlayer;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class Board {
+import static src.com.chess.engine.board.Move.*;
 
-    private final List<Square> gameBoard;
+public final class Board {
+
+    private final Map<Integer, Piece> boardConfig;
     private final Collection<Piece> whitePieces;
     private final Collection<Piece> blackPieces;
-
     private final WhitePlayer whitePlayer;
     private final BlackPlayer blackPlayer;
     private final Player currentPlayer;
+    private final Pawn enPassantPawn;
+    private final Move transitionMove;
+
+    private static final Board STANDARD_BOARD = createStandardBoardImpl();
 
     private Board(final Builder builder) {
-        this.gameBoard = createGameBoard(builder);
-        this.whitePieces = calculateActivePieces(this.gameBoard, Color.WHITE);
-        this.blackPieces = calculateActivePieces(this.gameBoard, Color.BLACK);
-
-        final Collection<Move> whiteStandardLegalMoves = calculateLegalMoves(this.whitePieces);
-        final Collection<Move> blackStandardLegalMoves = calculateLegalMoves(this.blackPieces);;
-
-        this.whitePlayer = new WhitePlayer(this, whiteStandardLegalMoves, blackStandardLegalMoves);
-        this.blackPlayer = new BlackPlayer(this, whiteStandardLegalMoves, blackStandardLegalMoves);
-        this.currentPlayer = builder.nextMoveMaker.choosePlayer(this.whitePlayer, this.blackPlayer);
+        this.boardConfig = Collections.unmodifiableMap(builder.boardConfig);
+        this.whitePieces = calculateActivePieces(builder, Color.WHITE);
+        this.blackPieces = calculateActivePieces(builder, Color.BLACK);
+        this.enPassantPawn = builder.enPassantPawn;
+        final Collection<Move> whiteStandardMoves = calculateLegalMoves(this.whitePieces);
+        final Collection<Move> blackStandardMoves = calculateLegalMoves(this.blackPieces);
+        this.whitePlayer = new WhitePlayer(this, whiteStandardMoves, blackStandardMoves);
+        this.blackPlayer = new BlackPlayer(this, whiteStandardMoves, blackStandardMoves);
+        this.currentPlayer = builder.nextMoveMaker.choosePlayerByColor(this.whitePlayer, this.blackPlayer);
+        this.transitionMove = builder.transitionMove != null ? builder.transitionMove : MoveFactory.getNullMove();
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         for (int i = 0; i < BoardUtils.NUM_SQUARES; i++) {
-            final String squareText = this.gameBoard.get(i).toString();
+            final String squareText = prettyPrint(this.boardConfig.get(i));
             builder.append(String.format("%3s", squareText));
-            if ((i + 1) % BoardUtils.NUM_SQUARES_PER_ROW == 0) {
+            if ((i + 1) % 8 == 0) {
                 builder.append("\n");
             }
         }
         return builder.toString();
     }
 
-    private static String prettyPrint(Square square) {
-        return square.toString();
-    }
-
-    public Player whitePlayer() {
-        return this.whitePlayer;
-    }
-
-    public Player blackPlayer() {
-        return this.blackPlayer;
-    }
-
-    public Player currentPlayer() {
-        return this.currentPlayer;
+    private static String prettyPrint(final Piece piece) {
+        if(piece != null) {
+            return piece.getPieceColor().isBlack() ?
+                    piece.toString().toLowerCase() : piece.toString();
+        }
+        return "-";
     }
 
     public Collection<Piece> getBlackPieces() {
@@ -76,47 +76,52 @@ public class Board {
         return this.whitePieces;
     }
 
-    private Collection<Move> calculateLegalMoves(final Collection<Piece> pieces) {
-        final List<Move> legalMoves = new ArrayList<>();
-        for (final Piece piece : pieces) {
-            legalMoves.addAll(piece.calculateLegalMoves(this));
-        }
-        return ImmutableList.copyOf(legalMoves);
+    public Collection<Piece> getAllPieces() {
+        return Stream.concat(this.whitePieces.stream(),
+                this.blackPieces.stream()).collect(Collectors.toList());
     }
 
-    private static Collection<Piece> calculateActivePieces(final List<Square> gameBoard, final Color color) {
-        final List<Piece> activePieces = new ArrayList<>();
-        for (final Square square : gameBoard) {
-            if (square.isSquareOccupied()) {
-                final Piece piece = square.getPiece();
-                if (piece.getPieceColor() == color) {
-                    activePieces.add(piece);
-                }
-            }
-        }
-        return ImmutableList.copyOf(activePieces);
+    public Collection<Move> getAllLegalMoves() {
+        return Stream.concat(this.whitePlayer.getLegalMoves().stream(),
+                this.blackPlayer.getLegalMoves().stream()).collect(Collectors.toList());
     }
 
-    public Square getSquare(final int squareCoordinate) {
-        return gameBoard.get(squareCoordinate);
+    public WhitePlayer whitePlayer() {
+        return this.whitePlayer;
     }
 
-    private static List<Square> createGameBoard(final Builder builder) {
-        final Square[] squares = new Square[BoardUtils.NUM_SQUARES];
-        for (int i = 0; i < BoardUtils.NUM_SQUARES; i++) {
-            squares[i] = Square.createSquare(i, builder.boardConfig.get(i));
-        }
-        return ImmutableList.copyOf(squares);
+    public BlackPlayer blackPlayer() {
+        return this.blackPlayer;
+    }
+
+    public Player currentPlayer() {
+        return this.currentPlayer;
+    }
+
+    public Piece getPiece(final int coordinate) {
+        return this.boardConfig.get(coordinate);
+    }
+
+    public Pawn getEnPassantPawn() {
+        return this.enPassantPawn;
+    }
+
+    public Move getTransitionMove() {
+        return this.transitionMove;
     }
 
     public static Board createStandardBoard() {
+        return STANDARD_BOARD;
+    }
+
+    private static Board createStandardBoardImpl() {
         final Builder builder = new Builder();
-        // Black's Side
+        // Black Layout
         builder.setPiece(new Rook(Color.BLACK, 0));
         builder.setPiece(new Knight(Color.BLACK, 1));
         builder.setPiece(new Bishop(Color.BLACK, 2));
         builder.setPiece(new Queen(Color.BLACK, 3));
-        builder.setPiece(new King(Color.BLACK, 4));
+        builder.setPiece(new King(Color.BLACK, 4, true, true));
         builder.setPiece(new Bishop(Color.BLACK, 5));
         builder.setPiece(new Knight(Color.BLACK, 6));
         builder.setPiece(new Rook(Color.BLACK, 7));
@@ -128,7 +133,7 @@ public class Board {
         builder.setPiece(new Pawn(Color.BLACK, 13));
         builder.setPiece(new Pawn(Color.BLACK, 14));
         builder.setPiece(new Pawn(Color.BLACK, 15));
-        // White's Side
+        // White Layout
         builder.setPiece(new Pawn(Color.WHITE, 48));
         builder.setPiece(new Pawn(Color.WHITE, 49));
         builder.setPiece(new Pawn(Color.WHITE, 50));
@@ -141,44 +146,63 @@ public class Board {
         builder.setPiece(new Knight(Color.WHITE, 57));
         builder.setPiece(new Bishop(Color.WHITE, 58));
         builder.setPiece(new Queen(Color.WHITE, 59));
-        builder.setPiece(new King(Color.WHITE, 60));
+        builder.setPiece(new King(Color.WHITE, 60, true, true));
         builder.setPiece(new Bishop(Color.WHITE, 61));
         builder.setPiece(new Knight(Color.WHITE, 62));
         builder.setPiece(new Rook(Color.WHITE, 63));
-        // White To-Move
+        //white to move
         builder.setMoveMaker(Color.WHITE);
-        // Build the Board
+        //build the board
         return builder.build();
     }
 
-    public Iterable<Move> getAllLegalMoves() {
-        return Iterables.unmodifiableIterable(Iterables.concat(this.whitePlayer.getLegalMoves(),
-                                                                this.blackPlayer.getLegalMoves()));
+    private Collection<Move> calculateLegalMoves(final Collection<Piece> pieces) {
+        return pieces.stream().flatMap(piece -> piece.calculateLegalMoves(this).stream())
+                .collect(Collectors.toList());
     }
+
+    private static Collection<Piece> calculateActivePieces(final Builder builder,
+                                                           final Color color) {
+        return builder.boardConfig.values().stream()
+                .filter(piece -> piece.getPieceColor() == color)
+                .collect(Collectors.toList());
+    }
+
     public static class Builder {
 
         Map<Integer, Piece> boardConfig;
         Color nextMoveMaker;
         Pawn enPassantPawn;
+        Move transitionMove;
 
         public Builder() {
-            this.boardConfig = new HashMap<>();
+            this.boardConfig = new HashMap<>(32, 1.0f);
         }
 
         public Builder setPiece(final Piece piece) {
             this.boardConfig.put(piece.getPiecePosition(), piece);
             return this;
         }
+
         public Builder setMoveMaker(final Color nextMoveMaker) {
             this.nextMoveMaker = nextMoveMaker;
             return this;
         }
+
+        public Builder setEnPassantPawn(final Pawn enPassantPawn) {
+            this.enPassantPawn = enPassantPawn;
+            return this;
+        }
+
+        public Builder setMoveTransition(final Move transitionMove) {
+            this.transitionMove = transitionMove;
+            return this;
+        }
+
         public Board build() {
             return new Board(this);
         }
 
-        public void setEnPassantPawn(Pawn enPassantPawn) {
-            this.enPassantPawn = enPassantPawn;
-        }
     }
+
 }
