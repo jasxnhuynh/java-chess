@@ -4,10 +4,14 @@ import src.com.chess.engine.board.Board;
 import src.com.chess.engine.board.BoardUtils;
 import src.com.chess.engine.board.Square;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +19,11 @@ public class Table {
 
     private final JFrame gameFrame;
     private final BoardPanel boardPanel;
+    private final Board chessBoard;
     private final static Dimension OUTER_FRAME_DIMENSION = new Dimension(600, 600);
     private final static Dimension BOARD_PANEL_DIMENSION = new Dimension(400, 350);
     private final static Dimension SQUARE_PANEL_DIMENSION = new Dimension(10, 10);
+    private static String defaultPieceImagesPath = "art/";
     private final Color lightTileColor = Color.decode("#FFFACD");
     private final Color darkTileColor = Color.decode("#593E1A");
 
@@ -27,6 +33,7 @@ public class Table {
         final JMenuBar tableMenuBar = createTableMenuBar();
         this.gameFrame.setJMenuBar(tableMenuBar);
         this.gameFrame.setSize(OUTER_FRAME_DIMENSION);
+        this.chessBoard = Board.createStandardBoard();
         this.boardPanel = new BoardPanel();
         this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
         this.gameFrame.setVisible(true);
@@ -79,19 +86,34 @@ public class Table {
             this.squareID = squareID;
             setPreferredSize(SQUARE_PANEL_DIMENSION);
             assignSquareColor();
+            assignSquarePieceIcon(chessBoard);
             validate();
         }
 
+        private void assignSquarePieceIcon(final Board board) {
+            this.removeAll();
+            if (board.getSquare(this.squareID).isSquareOccupied()) {
+                try {
+                    final BufferedImage image = ImageIO.read(new File(defaultPieceImagesPath +
+                            board.getSquare(this.squareID).getPiece().getPieceColor().toString().substring(0, 1) +
+                            board.getSquare(this.squareID).getPiece().toString() + ".gif"));
+                    add(new JLabel(new ImageIcon(image)));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
         private void assignSquareColor() {
-            if (BoardUtils.FIRST_ROW[this.squareID] ||
-                    BoardUtils.THIRD_ROW[this.squareID] ||
-                    BoardUtils.FIFTH_ROW[this.squareID] ||
-                    BoardUtils.SEVENTH_ROW[this.squareID]) {
+            if (BoardUtils.EIGHTH_RANK[this.squareID] ||
+                    BoardUtils.SIXTH_RANK[this.squareID] ||
+                    BoardUtils.FOURTH_RANK[this.squareID] ||
+                    BoardUtils.SECOND_RANK[this.squareID]) {
                 setBackground(this.squareID % 2 == 0 ? lightTileColor : darkTileColor);
-            } else if (BoardUtils.SECOND_ROW[this.squareID] ||
-                    BoardUtils.FOURTH_ROW[this.squareID] ||
-                    BoardUtils.SIXTH_ROW[this.squareID] ||
-                    BoardUtils.EIGHTH_ROW[this.squareID]) {
+            } else if (BoardUtils.SEVENTH_RANK[this.squareID] ||
+                    BoardUtils.FIFTH_RANK[this.squareID] ||
+                    BoardUtils.THIRD_RANK[this.squareID] ||
+                    BoardUtils.FIRST_RANK[this.squareID]) {
                 setBackground(this.squareID % 2 != 0 ? lightTileColor : darkTileColor);
             }
         }
