@@ -28,7 +28,7 @@ public class Pawn extends Piece {
             final int candidateDestinationCoordinate = this.piecePosition + (this.pieceColor.getDirection() *
                     currentCandidateOffset);
 
-            if (BoardUtils.isValidSquareCoordinate(candidateDestinationCoordinate)) {
+            if (!BoardUtils.isValidSquareCoordinate(candidateDestinationCoordinate)) {
                 continue;
             }
             if (currentCandidateOffset == 8 && board.getSquare(candidateDestinationCoordinate).isSquareOccupied()) {
