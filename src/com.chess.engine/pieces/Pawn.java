@@ -5,18 +5,25 @@ import src.com.chess.engine.Color;
 import src.com.chess.engine.board.Board;
 import src.com.chess.engine.board.BoardUtils;
 import src.com.chess.engine.board.Move;
+import src.com.chess.engine.board.Move.PawnJump;
 import src.com.chess.engine.board.Move.RegularMove;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static src.com.chess.engine.board.Move.*;
+
 public class Pawn extends Piece {
 
     private final static int[] CANDIDATE_MOVE_COORDINATE = {8, 16, 7, 9};
 
     public Pawn(final Color pieceColor, final int piecePosition) {
-        super(PieceType.PAWN, piecePosition, pieceColor);
+        super(PieceType.PAWN, piecePosition, pieceColor, true);
+    }
+
+    public Pawn(final Color pieceColor, final int piecePosition, final boolean isFirstMove) {
+        super(PieceType.PAWN, piecePosition, pieceColor, isFirstMove);
     }
 
     @Override
@@ -35,13 +42,13 @@ public class Pawn extends Piece {
                 // to-do!!! promotions
                 legalMoves.add(new RegularMove(board, this, candidateDestinationCoordinate));
             } else if (currentCandidateOffset == 16 && this.isFirstMove() &&
-                    (BoardUtils.SEVENTH_RANK[this.piecePosition] && this.getPieceColor().isBlack()) ||
-                    (BoardUtils.SECOND_RANK[this.piecePosition] && this.getPieceColor().isWhite())) {
+                    ((BoardUtils.SEVENTH_RANK[this.piecePosition] && this.getPieceColor().isBlack()) ||
+                    (BoardUtils.SECOND_RANK[this.piecePosition] && this.getPieceColor().isWhite()))) {
                 final int behindCandidateDestinationCoordinate = this.piecePosition +
                         (this.pieceColor.getDirection() * 8);
                 if (!board.getSquare(behindCandidateDestinationCoordinate).isSquareOccupied() &&
                         !board.getSquare(candidateDestinationCoordinate).isSquareOccupied()) {
-                    legalMoves.add(new RegularMove(board, this, candidateDestinationCoordinate));
+                    legalMoves.add(new PawnJump(board, this, candidateDestinationCoordinate));
                 }
             } else if (currentCandidateOffset == 7 &&
                     !((BoardUtils.EIGHTH_COLUMN[this.piecePosition] && this.pieceColor.isWhite() ||
@@ -50,7 +57,7 @@ public class Pawn extends Piece {
                     final Piece pieceOnCandidate = board.getSquare(candidateDestinationCoordinate).getPiece();
                     if (this.pieceColor != pieceOnCandidate.getPieceColor()) {
                         // todo
-                        legalMoves.add(new RegularMove(board, this, candidateDestinationCoordinate));
+                        legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceOnCandidate));
                     }
                 }
             } else if (currentCandidateOffset == 9 &&
@@ -60,7 +67,7 @@ public class Pawn extends Piece {
                     final Piece pieceOnCandidate = board.getSquare(candidateDestinationCoordinate).getPiece();
                     if (this.pieceColor != pieceOnCandidate.getPieceColor()) {
                         // todo
-                        legalMoves.add(new RegularMove(board, this, candidateDestinationCoordinate));
+                        legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceOnCandidate));
                     }
                 }
             }

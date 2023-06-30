@@ -8,15 +8,24 @@ import static src.com.chess.engine.board.Board.*;
 
 public abstract class Move {
 
-    final Board board;
-    final Piece movedPiece;
-    final int destinationCoordinate;
+    protected final Board board;
+    protected final Piece movedPiece;
+    protected final int destinationCoordinate;
+    protected final boolean isFirstMove;
     public static final Move NULL_MOVE = new NullMove();
 
     private Move(final Board board, final Piece movedPiece, final int destinationCoordinate) {
         this.board = board;
         this.movedPiece = movedPiece;
         this.destinationCoordinate = destinationCoordinate;
+        this.isFirstMove = movedPiece.isFirstMove();
+    }
+
+    private Move(final Board board, final int destinationCoordinate) {
+        this.board = board;
+        this.destinationCoordinate = destinationCoordinate;
+        this.movedPiece = null;
+        this.isFirstMove = false;
     }
 
     @Override
@@ -25,6 +34,7 @@ public abstract class Move {
         int result = 1;
         result = prime * result + this.destinationCoordinate;
         result = prime * result + this.movedPiece.hashCode();
+        result = prime * result + this.movedPiece.getPiecePosition();
         return result;
     }
 
@@ -37,7 +47,8 @@ public abstract class Move {
             return false;
         }
         final Move otherMove = (Move) other;
-        return getDestinationCoordinate() == otherMove.getDestinationCoordinate() &&
+        return getCurrentCoordinate() == otherMove.getCurrentCoordinate() &&
+                getDestinationCoordinate() == otherMove.getDestinationCoordinate() &&
                 getMovedPiece().equals(otherMove.getMovedPiece());
     }
 
@@ -83,6 +94,14 @@ public abstract class Move {
     public static final class RegularMove extends Move {
         public RegularMove(final Board board, final Piece movedPiece, final int destinationCoordinate) {
             super(board, movedPiece, destinationCoordinate);
+        }
+        @Override
+        public boolean equals(final Object other) {
+            return this == other || other instanceof RegularMove && super.equals(other);
+        }
+        @Override
+        public String toString() {
+            return movedPiece.getPieceType().toString() + BoardUtils.getPositionatCoordinate(this.destinationCoordinate);
         }
     }
 
