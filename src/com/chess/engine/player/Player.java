@@ -32,7 +32,7 @@ public abstract class Player {
         return this.legalMoves;
     }
 
-    private static Collection<Move> calculateAttacksOnSquare(int piecePosition, Collection<Move> moves) {
+    protected static Collection<Move> calculateAttacksOnSquare(int piecePosition, Collection<Move> moves) {
         final List<Move> attackMoves = new ArrayList<>();
         for (final Move move : moves) {
             if (piecePosition == move.getDestinationCoordinate()) {
@@ -101,4 +101,6 @@ public abstract class Player {
     public abstract Collection<Piece> getActivePieces();
     public abstract Color getColor();
     public abstract Player getOpponent();
+    protected abstract Collection<Move> calculateKingCastles(Collection<Move> playerLegals,
+                                                             Collection<Move> opponentLegals);
 }
