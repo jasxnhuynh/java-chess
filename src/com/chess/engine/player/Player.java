@@ -1,6 +1,7 @@
 package src.com.chess.engine.player;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import src.com.chess.engine.Color;
 import src.com.chess.engine.board.Board;
 import src.com.chess.engine.board.Move;
@@ -20,7 +21,8 @@ public abstract class Player {
     Player(final Board board, final Collection<Move> legalMoves, final Collection<Move> opponentMoves) {
         this.board = board;
         this.playerKing = establishKing();
-        this.legalMoves = legalMoves;
+        this.legalMoves = ImmutableList.copyOf(Iterables.concat(legalMoves,
+                calculateKingCastles(legalMoves, opponentMoves)));
         this.isInCheck = !Player.calculateAttacksOnSquare(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
     }
 
