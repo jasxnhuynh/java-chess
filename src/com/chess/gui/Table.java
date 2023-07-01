@@ -1,12 +1,14 @@
 package src.com.chess.gui;
 
-import com.google.common.collect.Lists;
-import src.com.chess.engine.board.Board;
-import src.com.chess.engine.board.BoardUtils;
-import src.com.chess.engine.board.Move;
-import src.com.chess.engine.board.MoveTransition;
+import src.com.chess.engine.board.*;
+import src.com.chess.engine.board.Move.MoveFactory;
 import src.com.chess.engine.pieces.Piece;
 import src.com.chess.engine.player.Player;
+import src.com.chess.engine.player.ai.StandardBoardEvaluator;
+import src.com.chess.engine.player.ai.StockAlphaBeta;
+import src.com.chess.pgn.FenUtilities;
+import src.com.chess.pgn.MySQLGamePersistence;
+import com.google.common.collect.Lists;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,6 +21,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static src.com.chess.pgn.PGNUtilities.persistPGNFile;
+import static src.com.chess.pgn.PGNUtilities.writeGameToPGNFile;
 import static javax.swing.JFrame.setDefaultLookAndFeelDecorated;
 import static javax.swing.SwingUtilities.*;
 
@@ -479,7 +483,7 @@ public final class Table extends Observable {
         protected Move doInBackground() {
             final Move bestMove;
             final Move bookMove = Table.get().getUseBook()
-                    ? MySqlGamePersistence.get().getNextBestMove(Table.get().getGameBoard(),
+                    ? MySQLGamePersistence.get().getNextBestMove(Table.get().getGameBoard(),
                     Table.get().getGameBoard().currentPlayer(),
                     Table.get().getMoveLog().getMoves().toString().replaceAll("\\[", "").replaceAll("]", ""))
                     : MoveFactory.getNullMove();
@@ -748,7 +752,7 @@ public final class Table extends Observable {
         }
 
         private Collection<Move> pieceLegalMoves(final Board board) {
-            if(humanMovedPiece != null && humanMovedPiece.getPieceColor().isBlack() == board.currentPlayer().getColor()) {
+            if(humanMovedPiece != null && humanMovedPiece.getPieceColor() == board.currentPlayer().getColor()) {
                 return humanMovedPiece.calculateLegalMoves(board);
             }
             return Collections.emptyList();

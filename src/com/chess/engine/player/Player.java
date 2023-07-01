@@ -22,7 +22,7 @@ public abstract class Player {
     protected final Collection<Move> legalMoves;
     private final boolean isInCheck;
 
-    Player(final Board board, final Collection<Move> legalMoves, final Collection<Move> opponentMoves) {
+    Player(final Board board, final Collection<Move> playerLegals, final Collection<Move> opponentLegals) {
         this.board = board;
         this.playerKing = establishKing();
         this.isInCheck = !calculateAttacksOnSquare(this.playerKing.getPiecePosition(), opponentLegals).isEmpty();
